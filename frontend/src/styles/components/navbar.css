@@ -1,0 +1,20 @@
+/* src/components/layout/navbar.css */
+.navbar-cart {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  text-decoration: none;
+  color: var(--color-secondary);
+}
+
+.cart-badge {
+  background-color: var(--color-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  border-radius: 10px;
+  padding: 2px 6px;
+  min-width: 16px;
+  text-align: center;
+}
