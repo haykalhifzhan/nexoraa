@@ -1,68 +1,166 @@
 // src/pages/Home.js
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
+import ProductCard from '../components/ui/ProductCard';
+import CategoryItem from '../components/ui/CategoryItem';
+import PromoBanner from '../components/ui/PromoBanner';
 import './home.css';
 
-// Ikon keranjang dari Heroicons (outline style)
-const ShoppingCartIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="icon">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.072.832l.284 1.136c.12.48.574.832 1.072.832h12.136c.51 0 .955-.343 1.072-.832l.284-1.136A1.5 1.5 0 0 1 19.5 3h1.5m-15 0a1.5 1.5 0 0 1 1.5 1.5v15a1.5 1.5 0 0 1-1.5 1.5H3a1.5 1.5 0 0 1-1.5-1.5V4.5A1.5 1.5 0 0 1 3 3Zm18 0a1.5 1.5 0 0 1 1.5 1.5v15a1.5 1.5 0 0 1-1.5 1.5h-3a1.5 1.5 0 0 1-1.5-1.5V4.5a1.5 1.5 0 0 1 1.5-1.5h3Z" />
-  </svg>
-);
-
-// Ikon mata (untuk detail produk)
-const EyeIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="icon">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-  </svg>
-);
+// Mock icons (ganti dengan SVG real nanti)
+const IconElectronics = () => <span>🔌</span>;
+const IconAudio = () => <span>🎧</span>;
+const IconAccessories = () => <span>📱</span>;
+const IconLaptop = () => <span>💻</span>;
+const IconSmartphone = () => <span>📱</span>;
+const IconGaming = () => <span>🎮</span>;
 
 export default function Home() {
-  // Data dummy — nanti bisa diganti dengan API
-  const products = [
-    { id: 1, name: 'Wireless Mouse', price: 149000 },
-    { id: 2, name: 'Mechanical Keyboard', price: 899000 },
-    { id: 3, name: 'Noise-Canceling Headset', price: 1250000 },
-    { id: 4, name: 'Laptop Stand', price: 225000 },
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await axios.get('http://localhost:5000/api/products');
+        const enriched = res.data.map(p => ({
+          ...p,
+          discount: p.price < 1000000 ? { percentage: 15 } : null,
+          isBestSeller: ['Wireless Mouse', 'Mechanical Keyboard'].includes(p.name),
+          originalPrice: p.price * 1.15
+        }));
+        setProducts(enriched.slice(0, 8));
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const categories = [
+    { icon: <IconElectronics />, label: 'Elektronik', href: '/kategori/elektronik' },
+    { icon: <IconAudio />, label: 'Audio', href: '/kategori/audio' },
+    { icon: <IconAccessories />, label: 'Aksesoris', href: '/kategori/aksesoris' },
+    { icon: <IconLaptop />, label: 'Laptop', href: '/kategori/laptop' },
+    { icon: <IconSmartphone />, label: 'Smartphone', href: '/kategori/smartphone' },
+    { icon: <IconGaming />, label: 'Gaming', href: '/kategori/gaming' },
   ];
 
   return (
     <div className="home">
-      {/* Hero Section */}
-      <section className="hero">
-        <div className="container hero-content">
+      {/* Hero Banner */}
+      <section className="hero-banner">
+        <div className="container">
           <h1>Selamat Datang di Nexora</h1>
           <p className="hero-subtitle">
-            Platform belanja digital yang tenang, profesional, dan mudah digunakan.
+            Belanja teknologi masa depan dengan mudah, aman, dan profesional.
           </p>
-          <Link to="/products" className="btn btn--primary">
-            Jelajahi Produk
-          </Link>
+          <div className="hero-cta">
+            <Link to="/products" className="btn btn--primary">
+              Mulai Belanja
+            </Link>
+            <Link to="/promo" className="btn btn--outline">
+              Lihat Promo
+            </Link>
+          </div>
         </div>
       </section>
 
-      {/* Produk Terbaru */}
-      <section className="products-section">
+      {/* Kategori */}
+      <section className="section">
         <div className="container">
-          <h2 className="section-title">Produk Terbaru</h2>
-          <div className="products-grid">
-            {products.map((product) => (
-              <div key={product.id} className="product-card">
-                <div className="product-image">
-                  <ShoppingCartIcon />
-                </div>
-                <h3 className="product-name">{product.name}</h3>
-                <p className="product-price">Rp {product.price.toLocaleString('id-ID')}</p>
-                <div className="product-actions">
-                  <Link to={`/products/${product.id}`} className="btn btn--secondary product-action-btn">
-                    <EyeIcon /> Lihat Detail
-                  </Link>
-                </div>
-              </div>
+          <h2 className="section-title">Kategori Populer</h2>
+          <div className="category-grid">
+            {categories.map((cat, i) => (
+              <CategoryItem key={i} {...cat} />
             ))}
           </div>
         </div>
       </section>
+
+      {/* Promo Banner */}
+      <PromoBanner />
+
+      {/* Produk Populer */}
+      <section className="section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">Produk Populer</h2>
+            <Link to="/produk/populer" className="section-link">Lihat Semua →</Link>
+          </div>
+          <div className="products-grid">
+            {loading ? (
+              Array(4).fill(0).map((_, i) => (
+                <div key={i} className="product-card skeleton"></div>
+              ))
+            ) : (
+              products.slice(0, 4).map(product => (
+                <ProductCard key={product._id} product={product} />
+              ))
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Produk Terbaru */}
+      <section className="section">
+        <div className="container">
+          <div className="section-header">
+            <h2 className="section-title">🆕 Produk Terbaru</h2>
+            <Link to="/produk/terbaru" className="section-link">Lihat Semua →</Link>
+          </div>
+          <div className="products-grid">
+            {products.length > 4 ? (
+              products.slice(4, 8).map(product => (
+                <ProductCard key={product._id} product={product} />
+              ))
+            ) : (
+              <p className="empty-message">Belum ada produk terbaru.</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="footer">
+        <div className="container">
+          <div className="footer-grid">
+            <div className="footer-col">
+              <h3>Nexora</h3>
+              <p>Platform belanja digital yang tenang, profesional, dan mudah digunakan.</p>
+            </div>
+            <div className="footer-col">
+              <h4>Tentang</h4>
+              <ul>
+                <li><a href="#">Tentang Kami</a></li>
+                <li><a href="#">Karir</a></li>
+                <li><a href="#">Blog</a></li>
+              </ul>
+            </div>
+            <div className="footer-col">
+              <h4>Bantuan</h4>
+              <ul>
+                <li><a href="#">Pusat Bantuan</a></li>
+                <li><a href="#">Kebijakan Privasi</a></li>
+                <li><a href="#">Syarat & Ketentuan</a></li>
+              </ul>
+            </div>
+            <div className="footer-col">
+              <h4>Ikuti Kami</h4>
+              <div className="social-links">
+                <a href="#">𝕏</a>
+                <a href="#">Instagram</a>
+                <a href="#">YouTube</a>
+              </div>
+            </div>
+          </div>
+          <div className="footer-copyright">
+            © {new Date().getFullYear()} Nexora. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

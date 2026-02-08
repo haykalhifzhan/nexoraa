@@ -5,17 +5,23 @@ const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [cartCount, setCartCount] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
     const userData = localStorage.getItem('user');
-    if (token && userData) {
-      setUser(JSON.parse(userData));
-    }
 
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCartCount(cart.reduce((sum, item) => sum + item.quantity, 0));
+    if (token && userData) {
+      try {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
+      } catch (e) {
+        console.warn('Invalid user data in localStorage, clearing...');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+      }
+    } else {
+      setUser(null);
+    }
   }, []);
 
   const login = (userData, token) => {
@@ -27,18 +33,12 @@ export function AuthProvider({ children }) {
   const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    localStorage.removeItem('cart');
+    localStorage.removeItem('cart'); // ← tambahkan ini
     setUser(null);
-    setCartCount(0);
-  };
-
-  const updateCart = () => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
-    setCartCount(cart.reduce((sum, item) => sum + item.quantity, 0));
   };
 
   return (
-    <AuthContext.Provider value={{ user, cartCount, login, logout, updateCart }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

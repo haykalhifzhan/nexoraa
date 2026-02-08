@@ -9,5 +9,6 @@ export default function ProtectedRoute({ children }) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  // Wrap children dalam fragment untuk menghindari error
+  return <>{children}</>;
 }
